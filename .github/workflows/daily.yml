@@ -1,15 +1,48 @@
-name: Daily Automation
+name: Daily AI Digest
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # Runs every day at 8am UTC
-  workflow_dispatch:       # Also lets you run it manually
+    - cron: '0 8 * * *'  # Every day at 8am UTC
+  workflow_dispatch:       # Manual trigger for testing
 
 jobs:
-  run-script:
+  send-digest:
     runs-on: ubuntu-latest
     steps:
-      - name: Run daily task
-        run: |
-          echo "Hello! Today is $(date)"
-          echo "This is where your automation logic goes"
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install feedparser
+
+      - name: Run digest script
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python scripts/ai_digest.py
+```
+
+---
+
+## Step 5 — Test it manually
+
+1. Go to your repo → **Actions** tab
+2. Click **Daily AI Digest** → **Run workflow**
+3. Watch it run — check the logs and your inbox!
+
+---
+
+## Your repo structure should look like this:
+```
+my-automations/
+├── .github/
+│   └── workflows/
+│       └── daily.yml
+└── scripts/
+    └── ai_digest.py
