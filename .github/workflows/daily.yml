@@ -1,0 +1,15 @@
+name: Daily Automation
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Runs every day at 8am UTC
+  workflow_dispatch:       # Also lets you run it manually
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run daily task
+        run: |
+          echo "Hello! Today is $(date)"
+          echo "This is where your automation logic goes"
