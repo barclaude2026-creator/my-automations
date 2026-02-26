@@ -2,8 +2,8 @@ name: Daily AI Digest
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # Every day at 8am UTC
-  workflow_dispatch:       # Manual trigger for testing
+    - cron: '0 8 * * *'
+  workflow_dispatch:
 
 jobs:
   send-digest:
@@ -26,23 +26,3 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: python scripts/ai_digest.py
-```
-
----
-
-## Step 5 — Test it manually
-
-1. Go to your repo → **Actions** tab
-2. Click **Daily AI Digest** → **Run workflow**
-3. Watch it run — check the logs and your inbox!
-
----
-
-## Your repo structure should look like this:
-```
-my-automations/
-├── .github/
-│   └── workflows/
-│       └── daily.yml
-└── scripts/
-    └── ai_digest.py
