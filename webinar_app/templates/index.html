@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Webinar Repurposing Machine</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f8;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2.5rem 2rem 2rem;
+      text-align: center;
+    }
+    .header h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; }
+    .header p  { margin-top: 0.4rem; opacity: 0.85; font-size: 1rem; }
+
+    /* ── Layout ──────────────────────────────────── */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── Input card ──────────────────────────────── */
+    .input-card {
+      background: white;
+      border-radius: 14px;
+      padding: 1.75rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      margin-bottom: 2rem;
+    }
+    .input-card label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #444;
+      margin-bottom: 0.6rem;
+    }
+    textarea {
+      width: 100%;
+      height: 210px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s;
+      color: #333;
+    }
+    textarea:focus { outline: none; border-color: #667eea; }
+    textarea::placeholder { color: #aaa; }
+
+    .btn {
+      margin-top: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.8rem 2.25rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.01em;
+    }
+    .btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* ── Results grid ────────────────────────────── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 720px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Result card ─────────────────────────────── */
+    .result-card {
+      background: white;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .card-icon { font-size: 1.25rem; }
+
+    .copy-btn {
+      background: none;
+      border: 1.5px solid #e2e8f0;
+      color: #666;
+      padding: 0.3rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .copy-btn:hover { border-color: #667eea; color: #667eea; }
+    .copy-btn.copied { border-color: #22c55e; color: #22c55e; }
+
+    /* ── Card body states ────────────────────────── */
+    .card-body { flex: 1; min-height: 160px; }
+
+    .idle-state, .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      gap: 0.6rem;
+      color: #ccc;
+    }
+    .idle-state .big-icon { font-size: 2.2rem; }
+    .idle-state p { font-size: 0.83rem; }
+
+    .spinner {
+      width: 30px; height: 30px;
+      border: 3px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    .loading-state span { font-size: 0.85rem; color: #999; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-text {
+      font-size: 0.88rem;
+      line-height: 1.75;
+      color: #333;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .error-text { font-size: 0.88rem; color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🎙️ Webinar Repurposing Machine</h1>
+    <p>Paste your transcript → instantly generate 4 ready-to-use content assets</p>
+  </div>
+
+  <div class="container">
+
+    <!-- ── Input ── -->
+    <div class="input-card">
+      <label for="transcript">Webinar Transcript</label>
+      <textarea id="transcript" placeholder="Paste your webinar transcript here…"></textarea>
+      <button class="btn" id="generateBtn" onclick="generate()">
+        ✨ Generate All 4 Assets
+      </button>
+    </div>
+
+    <!-- ── Results ── -->
+    <div class="results-grid">
+
+      <!-- Sales Email -->
+      <div class="result-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon">✉️</span> Sales Email
+          </div>
+          <button class="copy-btn" id="copy-sales-email-writer" onclick="copyResult('sales-email-writer')" style="display:none">Copy</button>
+        </div>
+        <div class="card-body" id="content-sales-email-writer">
+          <div class="idle-state">
+            <div class="big-icon">✉️</div>
+            <p>Ready to generate</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Power Quotes -->
+      <div class="result-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon">💬</span> Power Quotes
+          </div>
+          <button class="copy-btn" id="copy-power-quotes-identifier" onclick="copyResult('power-quotes-identifier')" style="display:none">Copy</button>
+        </div>
+        <div class="card-body" id="content-power-quotes-identifier">
+          <div class="idle-state">
+            <div class="big-icon">💬</div>
+            <p>Ready to generate</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Use Case Slides -->
+      <div class="result-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon">📊</span> Use Case Slides
+          </div>
+          <button class="copy-btn" id="copy-use-case-slide-writer" onclick="copyResult('use-case-slide-writer')" style="display:none">Copy</button>
+        </div>
+        <div class="card-body" id="content-use-case-slide-writer">
+          <div class="idle-state">
+            <div class="big-icon">📊</div>
+            <p>Ready to generate</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success Story -->
+      <div class="result-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon">🏆</span> Success Story
+          </div>
+          <button class="copy-btn" id="copy-success-story-writer" onclick="copyResult('success-story-writer')" style="display:none">Copy</button>
+        </div>
+        <div class="card-body" id="content-success-story-writer">
+          <div class="idle-state">
+            <div class="big-icon">🏆</div>
+            <p>Ready to generate</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /results-grid -->
+  </div><!-- /container -->
+
+  <script>
+    const SKILL_IDS = [
+      'sales-email-writer',
+      'power-quotes-identifier',
+      'use-case-slide-writer',
+      'success-story-writer',
+    ];
+
+    const resultCache = {};
+
+    function setLoading(skillId) {
+      document.getElementById(`content-${skillId}`).innerHTML = `
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <span>Generating…</span>
+        </div>`;
+      document.getElementById(`copy-${skillId}`).style.display = 'none';
+    }
+
+    function setResult(skillId, text) {
+      resultCache[skillId] = text;
+      document.getElementById(`content-${skillId}`).innerHTML =
+        `<div class="result-text">${escapeHtml(text)}</div>`;
+      document.getElementById(`copy-${skillId}`).style.display = 'inline-block';
+    }
+
+    function setError(skillId, msg) {
+      document.getElementById(`content-${skillId}`).innerHTML =
+        `<div class="error-text">⚠️ ${escapeHtml(msg)}</div>`;
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str));
+      return d.innerHTML;
+    }
+
+    async function generate() {
+      const transcript = document.getElementById('transcript').value.trim();
+      if (!transcript) {
+        alert('Please paste a webinar transcript first.');
+        return;
+      }
+
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Generating…';
+
+      SKILL_IDS.forEach(setLoading);
+
+      try {
+        const res = await fetch('/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript }),
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          SKILL_IDS.forEach(id => setError(id, data.error));
+          return;
+        }
+
+        for (const [skillId, text] of Object.entries(data.results)) {
+          if (text.startsWith('Error:')) {
+            setError(skillId, text);
+          } else {
+            setResult(skillId, text);
+          }
+        }
+      } catch (err) {
+        SKILL_IDS.forEach(id =>
+          setError(id, 'Request failed. Is ANTHROPIC_API_KEY set?')
+        );
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Generate All 4 Assets';
+      }
+    }
+
+    function copyResult(skillId) {
+      const text = resultCache[skillId];
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById(`copy-${skillId}`);
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
