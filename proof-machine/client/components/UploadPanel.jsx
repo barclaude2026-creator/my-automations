@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 
 export default function UploadPanel({ onRun, isRunning }) {
   const [file, setFile] = useState(null);
