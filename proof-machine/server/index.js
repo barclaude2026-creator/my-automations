@@ -129,6 +129,15 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// Serve built frontend in production
+const distPath = require('path').join(__dirname, '..', 'dist');
+if (require('fs').existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    res.sendFile(require('path').join(distPath, 'index.html'));
+  });
+}
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Proof Machine server running on http://localhost:${PORT}`);
