@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#b788ff" />
+  <title>Lingua — Learn English From Articles</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- ─────────────  HOME  ───────────── -->
+    <section class="view" id="view-home">
+      <header class="app-header">
+        <div class="greeting">
+          <h1>Hi there <span class="wave">👋</span></h1>
+          <p class="subtitle">What will you learn today?</p>
+        </div>
+        <button class="icon-btn" id="open-settings" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.3.3.45.7.49 1.14V10a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.4 1z"/></svg>
+        </button>
+      </header>
+
+      <button class="add-article-card" id="add-article-trigger">
+        <div class="add-plus">+</div>
+        <div class="add-text">
+          <h3>Add an article</h3>
+          <p>Paste a URL to create a new quiz</p>
+        </div>
+      </button>
+
+      <div class="quick-tiles">
+        <button class="tile tile-orange" data-nav="vocabulary">
+          <div class="tile-icon">⭐</div>
+          <div class="tile-text">
+            <div class="tile-label">My favorites</div>
+            <div class="tile-meta" id="fav-count">0 terms</div>
+          </div>
+        </button>
+        <button class="tile tile-peach" id="recent-article-tile">
+          <div class="tile-icon">🆕</div>
+          <div class="tile-text">
+            <div class="tile-label">Newest</div>
+            <div class="tile-meta" id="recent-article-meta">No quizzes yet</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="section-title-row">
+        <h3 class="section-title">Your articles</h3>
+        <span class="section-count" id="articles-count">0</span>
+      </div>
+      <ul class="article-list" id="article-list"></ul>
+      <div class="empty-state hidden" id="home-empty">
+        <p>No articles yet. Add one to get started! ✨</p>
+      </div>
+
+      <nav class="bottom-nav">
+        <button class="nav-item active" data-nav="home">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav-item" data-nav="vocabulary">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h10a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M18 4v16"/></svg>
+          <span>Vocabulary</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- ─────────────  QUIZ  ───────────── -->
+    <section class="view hidden" id="view-quiz">
+      <header class="app-header compact">
+        <button class="icon-btn" data-nav="home" aria-label="Back">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg>
+        </button>
+        <h2 class="header-title" id="quiz-title">Quiz</h2>
+        <span class="counter" id="quiz-counter">1/1</span>
+      </header>
+
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+      <div class="flashcard-wrap">
+        <div class="flashcard" id="flashcard">
+          <button class="card-star" id="favorite-term" aria-label="Favorite">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </button>
+          <div class="pos" id="pos-display">noun</div>
+          <div class="term" id="term-display">—</div>
+          <div class="context" id="context-display"></div>
+        </div>
+      </div>
+
+      <div class="options" id="options-container"></div>
+
+      <div class="card-footer">
+        <div class="feedback hidden" id="feedback"></div>
+        <button class="primary-btn hidden" id="next-card-btn">Next →</button>
+      </div>
+    </section>
+
+    <!-- ─────────────  VOCABULARY  ───────────── -->
+    <section class="view hidden" id="view-vocabulary">
+      <header class="app-header compact">
+        <button class="icon-btn" data-nav="home" aria-label="Back">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg>
+        </button>
+        <h2 class="header-title">My Vocabulary</h2>
+        <span class="counter" id="vocab-total">0</span>
+      </header>
+
+      <div class="filter-tabs">
+        <button class="tab active" data-filter="all">All</button>
+        <button class="tab" data-filter="favorites">⭐ Favorites</button>
+        <button class="tab" data-filter="mastered">✓ Mastered</button>
+      </div>
+
+      <ul class="vocab-list" id="vocab-list"></ul>
+      <div class="empty-state hidden" id="vocab-empty">
+        <p>No terms saved yet. Finish a quiz to start your collection!</p>
+      </div>
+
+      <nav class="bottom-nav">
+        <button class="nav-item" data-nav="home">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav-item active" data-nav="vocabulary">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h10a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M18 4v16"/></svg>
+          <span>Vocabulary</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- ─────────────  SUMMARY  ───────────── -->
+    <section class="view hidden" id="view-summary">
+      <header class="app-header compact">
+        <button class="icon-btn" data-nav="home" aria-label="Back">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg>
+        </button>
+        <h2 class="header-title">Nice work!</h2>
+        <span class="counter">🎉</span>
+      </header>
+
+      <div class="summary-card">
+        <div class="summary-emoji" id="summary-emoji">🎉</div>
+        <div class="summary-score"><span id="summary-correct">0</span><span class="summary-total"> / <span id="summary-total">0</span></span></div>
+        <div class="summary-label">correct</div>
+        <p class="summary-message" id="summary-message"></p>
+      </div>
+
+      <div class="summary-actions">
+        <button class="primary-btn" data-nav="vocabulary">View saved terms</button>
+        <button class="secondary-btn" data-nav="home">Back home</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ───────────── MODALS ───────────── -->
+  <div class="modal hidden" id="modal-add">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-content">
+      <h3>Add an article</h3>
+      <p class="modal-hint">Paste the URL of an article you'd like to learn vocabulary from.</p>
+      <input type="url" id="article-url-input" placeholder="https://example.com/article" autocomplete="url" />
+      <label class="field-inline">
+        <span>Your English level</span>
+        <select id="level-select">
+          <option value="intermediate">Intermediate (B1–B2)</option>
+          <option value="advanced" selected>Advanced (C1)</option>
+          <option value="proficient">Proficient (C2)</option>
+        </select>
+      </label>
+      <label class="field-inline">
+        <span>How many terms?</span>
+        <select id="count-select">
+          <option value="8">8</option>
+          <option value="12" selected>12</option>
+          <option value="16">16</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button class="secondary-btn" data-close-modal>Cancel</button>
+        <button class="primary-btn" id="submit-article-btn">Create quiz</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="modal-settings">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-content">
+      <h3>Settings</h3>
+      <label class="field">
+        <span>Anthropic API key</span>
+        <input type="password" id="api-key-input" placeholder="sk-ant-…" autocomplete="off" />
+        <small>Stored locally in your browser. Get one at console.anthropic.com.</small>
+      </label>
+      <label class="field">
+        <span>Model</span>
+        <select id="model-select">
+          <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6 (recommended)</option>
+          <option value="claude-opus-4-7">Claude Opus 4.7 (best quality, slower)</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fastest)</option>
+        </select>
+      </label>
+      <div class="modal-actions danger-row">
+        <button class="link-btn danger" id="reset-data">Reset all data</button>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-btn" data-close-modal>Cancel</button>
+        <button class="primary-btn" id="save-settings-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="modal-term">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-content">
+      <div class="term-detail" id="term-detail"></div>
+      <div class="modal-actions">
+        <button class="link-btn danger" id="delete-term">Remove</button>
+        <button class="primary-btn" data-close-modal>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading hidden" id="loading">
+    <div class="spinner"></div>
+    <p id="loading-msg">Crafting your quiz…</p>
+    <p class="loading-sub" id="loading-sub"></p>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
