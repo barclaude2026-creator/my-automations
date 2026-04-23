@@ -710,9 +710,89 @@ function attachEvents() {
   });
 }
 
+/* ───────────────────  ?quiz= deep-link import  ───────────────────
+ * Lets the daily TechCrunch automation (and any other source) drop you
+ * straight into a pre-generated quiz. Accepts either a relative path
+ * ("quizzes/2026-04-23-foo.json") resolved against the app URL, or an
+ * absolute URL.
+ */
+async function importQuizFromQuery() {
+  const params = new URLSearchParams(location.search);
+  const quizParam = params.get("quiz");
+  if (!quizParam) return false;
+
+  let url;
+  try {
+    url = new URL(quizParam, location.href).toString();
+  } catch {
+    toast("That quiz link looks malformed.");
+    return false;
+  }
+
+  try {
+    showLoading("Loading your quiz…", "");
+    const res = await fetch(url, { cache: "no-cache" });
+    if (!res.ok) throw new Error(`Couldn't load quiz (${res.status})`);
+    const data = await res.json();
+    if (!data || !Array.isArray(data.items) || data.items.length === 0) {
+      throw new Error("That quiz file is empty or malformed.");
+    }
+
+    // Clear the param so a refresh doesn't re-import.
+    history.replaceState({}, "", location.pathname);
+
+    // Already imported? Just jump into it.
+    const existing = state.articles.find((a) => a.url === data.url);
+    if (existing) {
+      hideLoading();
+      toast(`Resuming "${existing.title}"`);
+      startQuiz(existing.id);
+      return true;
+    }
+
+    const article = {
+      id: uid(),
+      url: data.url || url,
+      title: data.title || "Imported quiz",
+      level: data.level || "advanced",
+      source: data.source || "",
+      createdAt: data.createdAt || Date.now(),
+      items: data.items.filter(validItem).map((it) => ({
+        id: uid(),
+        term: it.term,
+        partOfSpeech: it.partOfSpeech || "",
+        correctDefinition: it.correctDefinition,
+        distractorDefinition: it.distractorDefinition,
+        contextSnippet: it.contextSnippet || "",
+        answered: false,
+        lastResult: null,
+      })),
+    };
+    if (article.items.length === 0) throw new Error("No usable items in that quiz.");
+
+    state.articles.push(article);
+    saveArticles();
+    hideLoading();
+    toast(`Quiz "${article.title}" added!`);
+    startQuiz(article.id);
+    return true;
+  } catch (err) {
+    hideLoading();
+    toast(err.message || "Couldn't load that quiz.");
+    console.error(err);
+    return false;
+  }
+}
+
 function init() {
   attachEvents();
   setView("home");
+
+  // Handle ?quiz=… deep links from the TechCrunch automation (or any source).
+  if (new URLSearchParams(location.search).has("quiz")) {
+    importQuizFromQuery();
+    return;
+  }
 
   // First-run hint
   if (!state.settings.apiKey && state.articles.length === 0) {

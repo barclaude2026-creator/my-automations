@@ -68,19 +68,68 @@ On the "Add article" screen you pick your level:
 The prompt also tells Claude to avoid overly common words, which means even at
 Intermediate you'll get useful terms rather than "customer" or "people".
 
-## Automation hook
+## Daily TechCrunch automation
 
-The submit flow is a single JS function (`handleAddArticle`) that reads a URL
-from an input. To trigger this from Claude Routines later, you can either:
+A GitHub Action runs `scripts/techcrunch_quiz.py` once a day, picks up to 3
+new TechCrunch articles whose titles contain "AI", generates a vocabulary quiz
+for each via Claude, commits the resulting JSON to `vocab-app/quizzes/`, and
+emails you a "Start quiz" link per article. Clicking the link opens the app
+with `?quiz=<path>`, which auto-imports the quiz and drops you into the
+flashcards.
 
-- Drive the input + button from a headless browser (Puppeteer / Playwright)
-  pointed at the static site, or
-- Reuse `fetchArticleText` + `generateQuiz` from `app.js` in a small Node
-  script that writes directly to the same `localStorage` shape (exportable as
-  JSON).
+### One-time setup
 
-The storage schema is intentionally simple so a routine can append an article
-without opening the app:
+1. **Add a repo secret** at *Settings → Secrets and variables → Actions →
+   New repository secret*:
+   - `ANTHROPIC_API_KEY` — your Claude key (the GMAIL_USER / GMAIL_APP_PASSWORD
+     / EMAIL_TO secrets from the existing daily digest are reused).
+2. *(Optional)* **Add a repo variable** (same screen → Variables tab):
+   - `APP_URL` — where you've hosted the app (rawgithack URL or, ideally, a
+     GitHub Pages URL like `https://barclaude2026-creator.github.io/my-automations/vocab-app/`).
+     Defaults to the rawgithack URL on the feature branch.
+3. **Make sure the repo is public** (or has GitHub Pages enabled on a paid
+   plan) so the app can fetch quiz JSON from `vocab-app/quizzes/` at runtime.
+
+### Schedule
+
+`.github/workflows/techcrunch-quiz.yml` runs at **08:30 UTC daily**. To run
+it manually: *Actions → Daily TechCrunch AI Vocab Quiz → Run workflow*.
+
+### How "new" is tracked
+
+The script keeps a list of already-processed URLs in
+`vocab-app/quizzes/seen.json` and a list of available quizzes in
+`vocab-app/quizzes/index.json`. Both are committed back to the repo on each
+successful run.
+
+### Direct-import format
+
+The app accepts `?quiz=<url-or-relative-path>`. The JSON shape is:
+
+```jsonc
+{
+  "url": "https://techcrunch.com/...",
+  "title": "Article title",
+  "level": "advanced",
+  "source": "TechCrunch",
+  "createdAt": 1735000000000,
+  "items": [
+    {
+      "term": "perseverance",
+      "partOfSpeech": "noun",
+      "correctDefinition": "...",
+      "distractorDefinition": "...",
+      "contextSnippet": "she showed remarkable ___ in the face of setbacks"
+    }
+  ]
+}
+```
+
+You can hand-author quiz files or generate them from any other source.
+
+## Local storage schema
+
+The app writes to `lingua.articles.v1` in `localStorage`:
 
 ```jsonc
 // localStorage key: "lingua.articles.v1"
@@ -106,6 +155,13 @@ without opening the app:
   }
 ]
 ```
+
+## Files
+
+- `index.html` / `styles.css` / `app.js` — the static web app
+- `quizzes/` — pre-generated quizzes (created by the daily automation)
+- `../scripts/techcrunch_quiz.py` — the automation script
+- `../.github/workflows/techcrunch-quiz.yml` — the daily schedule
 
 ## Troubleshooting
 
